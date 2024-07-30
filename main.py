@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 from sprites import PlantSprite, CitySprite
 from constants import *
@@ -17,13 +18,13 @@ energy_options = ['oil', 'nuclear', 'solar']
 city_options = ['dense', 'sparse']
 
 # create plants
-plants = [PlantSprite(random.choice(energy_options), 100 * 2 * i + 50, 100) for i in range(5)]
-city = [CitySprite(random.choice(city_options), 150 * 3 * i + 50, 300) for i in range(3)]
+plants = [PlantSprite(random.choice(energy_options), 100 * 2 * i + 50, 100) for i in range(NUM_PLANTS)]
+cities = [CitySprite(random.choice(city_options), 150 * 3 * i + 50, 300) for i in range(NUM_CITIES)]
+power_grid = np.zeros((NUM_PLANTS, NUM_CITIES)).astype(np.bool_)
 
 all_plants = pygame.sprite.Group(plants)
-all_cities = pygame.sprite.Group(city)
+all_cities = pygame.sprite.Group(cities)
 
-wires = []
 start_pos = None
 end_pos = None
 draw_wire = False
@@ -59,12 +60,30 @@ while running:
             end_pos = event.pos
 
     # GAME LOGIC
-    # Add game logic here
+    if not draw_wire:
+        start_pos = None
+        end_pos = None
 
+    if start_pos and end_pos:
+        # iterate all cities for all plants. if the wire connects them and they are not already connected, then connect them
+        for i, plant in enumerate(plants):
+            start_pos_in_mask = start_pos[0] - plant.rect.x, start_pos[1] - plant.rect.y
+            # second part is for pixel perfect collision
+            if plant.rect.collidepoint(start_pos) and plant.mask.get_at(start_pos_in_mask):
+                for j, city in enumerate(cities):
+                    end_pos_in_mask = end_pos[0] - city.rect.x, end_pos[1] - city.rect.y
+                    if city.rect.collidepoint(end_pos) and city.mask.get_at(end_pos_in_mask):
+                        if not power_grid[i, j]:
+                            power_grid[i, j] = True
 
     # DRAWING
     # draw
     screen.fill(BACKGROUND_COLOR)
+
+    for i in range(NUM_PLANTS):
+        for j in range(NUM_CITIES):
+            if power_grid[i, j]:
+                pygame.draw.line(screen, YELLOW, plants[i].rect.center, cities[j].rect.center, WIRE_WIDTH)
 
     all_plants.draw(screen)
     for sprite in all_plants:
@@ -73,8 +92,9 @@ while running:
     for sprite in all_cities:
         sprite.draw(screen)
 
-    if start_pos and end_pos:
-        pygame.draw.line(screen, YELLOW, start_pos, end_pos, WIRE_WIDTH)
+    if draw_wire:
+        if start_pos and end_pos:
+            pygame.draw.line(screen, YELLOW, start_pos, end_pos, WIRE_WIDTH)
 
     # update the display
     pygame.display.flip()

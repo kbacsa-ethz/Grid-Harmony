@@ -9,6 +9,7 @@ class PlantSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.highlighted = False
+        self.mask = pygame.mask.from_surface(self.image)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
@@ -16,8 +17,7 @@ class PlantSprite(pygame.sprite.Sprite):
             self.draw_contour(surface)
 
     def draw_contour(self, surface):
-        mask = pygame.mask.from_surface(self.image)
-        mask_outline = mask.outline()
+        mask_outline = self.mask.outline()
         outline_color = YELLOW
         outline_width = 1
         for point in mask_outline:
@@ -30,6 +30,7 @@ class CitySprite(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/{}_city.png'.format(image)).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
+        self.mask = pygame.mask.from_surface(self.image)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
