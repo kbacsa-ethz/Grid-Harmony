@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 from sprites import PlantSprite, CitySprite
+from geometry import segments_intersect
 from constants import *
 import random
 
@@ -17,11 +18,10 @@ clock = pygame.time.Clock()
 energy_options = ['oil', 'nuclear', 'solar']
 city_options = ['dense', 'sparse']
 
-# create plants
+# create plants, cities and power grid
 plants = [PlantSprite(random.choice(energy_options), 100 * 2 * i + 50, 100) for i in range(NUM_PLANTS)]
 cities = [CitySprite(random.choice(city_options), 150 * 3 * i + 50, 300) for i in range(NUM_CITIES)]
 power_grid = np.zeros((NUM_PLANTS, NUM_CITIES)).astype(np.bool_)
-
 all_plants = pygame.sprite.Group(plants)
 all_cities = pygame.sprite.Group(cities)
 
@@ -65,6 +65,8 @@ while running:
         end_pos = None
 
     if start_pos and end_pos:
+
+        # Adding connections
         # iterate all cities for all plants. if the wire connects them and they are not already connected, then connect them
         for i, plant in enumerate(plants):
             start_pos_in_mask = start_pos[0] - plant.rect.x, start_pos[1] - plant.rect.y
@@ -75,6 +77,13 @@ while running:
                     if city.rect.collidepoint(end_pos) and city.mask.get_at(end_pos_in_mask):
                         if not power_grid[i, j]:
                             power_grid[i, j] = True
+
+        # Removing connections
+        for i, plant in enumerate(plants):
+            for j, city in enumerate(cities):
+                if power_grid[i, j]:
+                    if segments_intersect(plant.rect.center, city.rect.center, start_pos, end_pos):
+                        power_grid[i, j] = False
 
     # DRAWING
     # draw
