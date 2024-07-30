@@ -7,8 +7,11 @@ A small game for the SEC game competition.
 
 ### TODO
 
-- [ ] Add permanent wires.
+- [x] Add permanent wires.
+- [ ] Add possibility to delete wires.
+- [ ] Add visual cue that city is powered.
 - [ ] Add money mechanic.
+- [ ] Add MW produced by plants and required by cities.
 - [ ] Add pygame -> kivy -> android pipeline.
 - [ ] Add add winning condition.
 - [ ] Add scoring system.
