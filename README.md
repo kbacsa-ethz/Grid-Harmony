@@ -8,7 +8,7 @@ A small game for the SEC game competition.
 ### TODO
 
 - [x] Add permanent wires.
-- [ ] Add possibility to delete wires.
+- [x] Add possibility to delete wires.
 - [ ] Add visual cue that city is powered.
 - [ ] Add money mechanic.
 - [ ] Add MW produced by plants and required by cities.
