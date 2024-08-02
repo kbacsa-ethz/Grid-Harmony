@@ -3,16 +3,19 @@ from constants import *
 
 
 class PlantSprite(pygame.sprite.Sprite):
-    def __init__(self, image, x, y):
+    def __init__(self, image, position):
         super().__init__()
         self.image = pygame.image.load('assets/{}_plant.png'.format(image)).convert_alpha()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.rect = self.image.get_rect(center=position)
+        self.position = pygame.Vector2(position)
         self.highlighted = False
-        self.mask = pygame.mask.from_surface(self.image)
+
+        self.relative_image = self.image
+        self.relative_rect = self.rect
+        self.mask = pygame.mask.from_surface(self.relative_image)
 
     def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
+        surface.blit(self.relative_image, self.relative_rect.topleft)
         if self.highlighted:
             self.draw_contour(surface)
 
@@ -21,20 +24,22 @@ class PlantSprite(pygame.sprite.Sprite):
         outline_color = YELLOW
         outline_width = 1
         for point in mask_outline:
-            pygame.draw.circle(surface, outline_color, (self.rect.x + point[0], self.rect.y + point[1]), outline_width)
+            pygame.draw.circle(surface, outline_color, (self.relative_rect.x + point[0], self.relative_rect.y + point[1]), outline_width)
 
 
 class CitySprite(pygame.sprite.Sprite):
-    def __init__(self, image, x, y):
+    def __init__(self, image, position):
         super().__init__()
         self.image = pygame.image.load('assets/{}_city.png'.format(image)).convert_alpha()
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.rect = self.image.get_rect(center=position)
+        self.position = pygame.Vector2(position)
         self.highlighted = False
-        self.mask = pygame.mask.from_surface(self.image)
+        self.relative_image = self.image
+        self.relative_rect = self.rect
+        self.mask = pygame.mask.from_surface(self.relative_image)
 
     def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
+        surface.blit(self.relative_image, self.relative_rect.topleft)
         if self.highlighted:
             self.draw_contour(surface)
 
@@ -43,4 +48,4 @@ class CitySprite(pygame.sprite.Sprite):
         outline_color = GREEN
         outline_width = 1
         for point in mask_outline:
-            pygame.draw.circle(surface, outline_color, (self.rect.x + point[0], self.rect.y + point[1]), outline_width)
+            pygame.draw.circle(surface, outline_color, (self.relative_rect.x + point[0], self.relative_rect.y + point[1]), outline_width)

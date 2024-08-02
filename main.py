@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 from sprites import PlantSprite, CitySprite
 from geometry import segments_intersect
+from camera import Camera
 from constants import *
 import random
 
@@ -13,12 +14,15 @@ random.seed(3)
 
 clock = pygame.time.Clock()
 
+# Create a camera instance
+camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
+
 energy_options = ['oil', 'nuclear', 'solar']
 city_options = ['dense', 'sparse']
 
 # create plants, cities and power grid
-plants = [PlantSprite(random.choice(energy_options), 100 * 2 * i + 50, 100) for i in range(NUM_PLANTS)]
-cities = [CitySprite(random.choice(city_options), 150 * 3 * i + 50, 300) for i in range(NUM_CITIES)]
+plants = [PlantSprite(random.choice(energy_options), (100 * 2 * i + 50, 100)) for i in range(NUM_PLANTS)]
+cities = [CitySprite(random.choice(city_options), (150 * 3 * i + 50, 300)) for i in range(NUM_CITIES)]
 power_grid = np.zeros((NUM_PLANTS, NUM_CITIES)).astype(np.bool_)
 activated_plants = np.zeros(NUM_PLANTS).astype(np.bool_)
 powered_cities = np.zeros(NUM_CITIES).astype(np.bool_)
@@ -43,12 +47,16 @@ while running:
             # lock/unlock plant if clicked on
             if event.button == LEFT:
                 for i, plant in enumerate(plants):
-                    event_pos_in_mask = event.pos[0] - plant.rect.x, event.pos[1] - plant.rect.y
-                    if plant.rect.collidepoint(event.pos) and plant.mask.get_at(event_pos_in_mask):
+                    event_pos_in_mask = event.pos[0] - plant.relative_rect.x, event.pos[1] - plant.relative_rect.y
+                    if plant.relative_rect.collidepoint(event.pos) and plant.mask.get_at(event_pos_in_mask):
                         activated_plants[i] = not activated_plants[i]
                 # Start drawing the line
                 start_pos = event.pos
                 draw_wire = True
+            elif event.button == 4:  # Mouse wheel up
+                camera.update_zoom(camera.zoom_step, pygame.mouse.get_pos())
+            elif event.button == 5:  # Mouse wheel down
+                camera.update_zoom(-camera.zoom_step, pygame.mouse.get_pos())
         elif event.type == pygame.MOUSEBUTTONUP and event.button == LEFT:
             # Stop drawing the line and finalize it
             end_pos = event.pos
@@ -69,12 +77,12 @@ while running:
         # Adding connections
         # iterate all cities for all plants. if the wire connects them and they are not already connected, then connect them
         for i, plant in enumerate(plants):
-            start_pos_in_mask = start_pos[0] - plant.rect.x, start_pos[1] - plant.rect.y
+            start_pos_in_mask = start_pos[0] - plant.relative_rect.x, start_pos[1] - plant.relative_rect.y
             # check is plant is unlocked, is the click in the rectangle, is the click pixel perfect
-            if activated_plants[i] and plant.rect.collidepoint(start_pos) and plant.mask.get_at(start_pos_in_mask):
+            if activated_plants[i] and plant.relative_rect.collidepoint(start_pos) and plant.mask.get_at(start_pos_in_mask):
                 for j, city in enumerate(cities):
-                    end_pos_in_mask = end_pos[0] - city.rect.x, end_pos[1] - city.rect.y
-                    if city.rect.collidepoint(end_pos) and city.mask.get_at(end_pos_in_mask):
+                    end_pos_in_mask = end_pos[0] - city.relative_rect.x, end_pos[1] - city.relative_rect.y
+                    if city.relative_rect.collidepoint(end_pos) and city.mask.get_at(end_pos_in_mask):
                         if not power_grid[i, j]:
                             power_grid[i, j] = True
 
@@ -83,7 +91,7 @@ while running:
             # Remove by cutting the wire
             for j, city in enumerate(cities):
                 if power_grid[i, j]:
-                    if segments_intersect(plant.rect.center, city.rect.center, start_pos, end_pos):
+                    if segments_intersect(plant.relative_rect.center, city.relative_rect.center, start_pos, end_pos):
                         power_grid[i, j] = False
 
     # Remove by deactivated plant
@@ -106,16 +114,25 @@ while running:
     # draw
     screen.fill(BACKGROUND_COLOR)
 
+
     for i in range(NUM_PLANTS):
         for j in range(NUM_CITIES):
             if power_grid[i, j]:
-                pygame.draw.line(screen, YELLOW, plants[i].rect.center, cities[j].rect.center, WIRE_WIDTH)
+                pygame.draw.line(screen, YELLOW, plants[i].relative_rect.center, cities[j].relative_rect.center, WIRE_WIDTH)
 
-    all_plants.draw(screen)
+    #all_plants.draw(screen)
     for sprite in all_plants:
+        # update camera
+        sprite.relative_image, sprite.relative_rect = camera.apply(sprite)
+        # recompute mask
+        sprite.mask = pygame.mask.from_surface(sprite.relative_image)
         sprite.draw(screen)
-    all_cities.draw(screen)
+    #all_cities.draw(screen)
     for sprite in all_cities:
+        # update camera
+        sprite.relative_image, sprite.relative_rect = camera.apply(sprite)
+        # recompute mask
+        sprite.mask = pygame.mask.from_surface(sprite.relative_image)
         sprite.draw(screen)
 
     if draw_wire:
