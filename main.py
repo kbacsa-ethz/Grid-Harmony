@@ -41,14 +41,15 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             # lock/unlock plant if clicked on
-            for i, plant in enumerate(plants):
-                event_pos_in_mask = event.pos[0] - plant.rect.x, event.pos[1] - plant.rect.y
-                if plant.rect.collidepoint(event.pos) and plant.mask.get_at(event_pos_in_mask):
-                    activated_plants[i] = not activated_plants[i]
-            # Start drawing the line
-            start_pos = event.pos
-            draw_wire = True
-        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == LEFT:
+                for i, plant in enumerate(plants):
+                    event_pos_in_mask = event.pos[0] - plant.rect.x, event.pos[1] - plant.rect.y
+                    if plant.rect.collidepoint(event.pos) and plant.mask.get_at(event_pos_in_mask):
+                        activated_plants[i] = not activated_plants[i]
+                # Start drawing the line
+                start_pos = event.pos
+                draw_wire = True
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == LEFT:
             # Stop drawing the line and finalize it
             end_pos = event.pos
             draw_wire = False
