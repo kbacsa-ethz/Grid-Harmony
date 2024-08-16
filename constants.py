@@ -14,7 +14,8 @@ NUM_PLANTS = 5
 
 # Plant data
 PLANT_DATA = [
-    {'type': 'oil', 'fixed_cost': 100, 'operational_cost': 10},
-    {'type': 'nuclear', 'fixed_cost': 200, 'operational_cost': 5},
-    {'type': 'solar', 'fixed_cost': 150, 'operational_cost': 0}
+    {'type': 'oil', 'fixed_cost': 100, 'operational_cost': 10, 'pollution_factor': 5},
+    {'type': 'nuclear', 'fixed_cost': 200, 'operational_cost': 5, 'pollution_factor': 2},
+    {'type': 'solar', 'fixed_cost': 150, 'operational_cost': 0, 'pollution_factor': 0},
+    {'type': 'wind', 'fixed_cost': 180, 'operational_cost': 2, 'pollution_factor': 0}
 ]

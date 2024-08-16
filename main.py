@@ -35,6 +35,9 @@ start_pos = None
 end_pos = None
 draw_wire = False
 
+pollution_level = 0
+max_pollution_level = 100  # Adjust as needed
+
 class Player:
     def __init__(self, initial_money):
         self.money = initial_money
@@ -179,6 +182,21 @@ while running:
     font = pygame.font.Font(None, 36)
     money_text = font.render(f"Money: {player.money}", True, (0, 0, 0))
     screen.blit(money_text, (10, 10))
+    
+    pollution_level = sum(plant.pollution_factor for plant in plants if plant.highlighted)
+    pollution_bar_color = (255,0,0)
+    # Display pollution level
+    pollution_text = font.render(f"Pollution: {pollution_level}/{max_pollution_level}", True, pollution_bar_color)
+    screen.blit(pollution_text, (10, 40))
+
+    # Pollution bar
+    pollution_bar_width = 200
+    pollution_bar_height = 20
+    
+    pollution_bar_rect = pygame.Rect(10, 60, pollution_bar_width, pollution_bar_height)
+    pygame.draw.rect(screen, (34,139,34), pollution_bar_rect)
+    pollution_fill_width = int(pollution_bar_width * pollution_level / max_pollution_level)
+    pygame.draw.rect(screen, pollution_bar_color, (10, 60, pollution_fill_width, pollution_bar_height))
 
     # update the display
     pygame.display.flip()
