@@ -3,12 +3,19 @@ from constants import *
 
 
 class PlantSprite(pygame.sprite.Sprite):
-    def __init__(self, image, position):
+    def __init__(self, plant_type, position):
         super().__init__()
-        self.image = pygame.image.load('assets/{}_plant.png'.format(image)).convert_alpha()
+
+        # Load plant image based on type
+        self.plant_type = plant_type
+        self.image = pygame.image.load(f'assets/{plant_type}_plant.png').convert_alpha()
         self.rect = self.image.get_rect(center=position)
         self.position = pygame.Vector2(position)
         self.highlighted = False
+
+        # Cost and operation data
+        self.cost = self.get_cost_from_type(plant_type)
+        self.operational_cost = self.get_operational_cost_from_type(plant_type)
 
         self.relative_image = self.image
         self.relative_rect = self.rect
@@ -25,6 +32,16 @@ class PlantSprite(pygame.sprite.Sprite):
         outline_width = 1
         for point in mask_outline:
             pygame.draw.circle(surface, outline_color, (self.relative_rect.x + point[0], self.relative_rect.y + point[1]), outline_width)
+
+    def get_cost_from_type(self, plant_type):
+        # Assuming cost data is stored in a dictionary in constants.py
+        cost_data = next(data for data in PLANT_DATA if data['type'] == plant_type)
+        return cost_data['fixed_cost']
+
+    def get_operational_cost_from_type(self, plant_type):
+        # Assuming operational cost data is stored in a dictionary in constants.py
+        cost_data = next(data for data in PLANT_DATA if data['type'] == plant_type)
+        return cost_data['operational_cost']
 
 
 class CitySprite(pygame.sprite.Sprite):

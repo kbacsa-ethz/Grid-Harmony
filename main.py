@@ -23,6 +23,8 @@ city_options = ['dense', 'sparse']
 # create plants, cities and power grid
 plants = [PlantSprite(random.choice(energy_options), (100 * 2 * i + 50, 100)) for i in range(NUM_PLANTS)]
 cities = [CitySprite(random.choice(city_options), (150 * 3 * i + 50, 300)) for i in range(NUM_CITIES)]
+
+
 power_grid = np.zeros((NUM_PLANTS, NUM_CITIES)).astype(np.bool_)
 activated_plants = np.zeros(NUM_PLANTS).astype(np.bool_)
 powered_cities = np.zeros(NUM_CITIES).astype(np.bool_)
@@ -32,6 +34,37 @@ all_cities = pygame.sprite.Group(cities)
 start_pos = None
 end_pos = None
 draw_wire = False
+
+class Player:
+    def __init__(self, initial_money):
+        self.money = initial_money
+        
+        
+# Player
+player = Player(1000)  # Initial money
+
+# ... rest of the code ...
+
+def build_plant(plant_type):
+    # Find the plant type in energy_sources
+    plant_data = next(p for p in energy_sources if p['type'] == plant_type)
+    if player.money >= plant_data['fixed_cost']:
+        player.money -= plant_data['fixed_cost']
+        # Create a new plant instance
+        # ...
+    else:
+        print("Insufficient funds")
+
+def calculate_turn_costs():
+    total_operational_cost = 0
+    for plant in plants:
+        total_operational_cost += plant.operational_cost
+    player.money -= total_operational_cost
+
+def calculate_income():
+    income = sum(powered_cities) * 10  # Simple income model
+    player.money += income
+
 
 while running:
 
@@ -138,6 +171,14 @@ while running:
     if draw_wire:
         if start_pos and end_pos:
             pygame.draw.line(screen, YELLOW, start_pos, end_pos, WIRE_WIDTH)
+    calculate_turn_costs()
+    calculate_income()
+    # ...
+
+    # Display money
+    font = pygame.font.Font(None, 36)
+    money_text = font.render(f"Money: {player.money}", True, (0, 0, 0))
+    screen.blit(money_text, (10, 10))
 
     # update the display
     pygame.display.flip()
