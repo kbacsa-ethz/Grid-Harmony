@@ -30,5 +30,8 @@ WORLD_HEIGHT = 10
 PLANT_DATA = [
     {'type': 'oil', 'fixed_cost': 100, 'operational_cost': 10},
     {'type': 'nuclear', 'fixed_cost': 200, 'operational_cost': 5},
-    {'type': 'solar', 'fixed_cost': 150, 'operational_cost': 0}
+    {'type': 'solar', 'fixed_cost': 150, 'operational_cost': 0},
+    {'type': 'wind', 'fixed_cost': 150, 'operational_cost': 0},
+    {'type': 'coal', 'fixed_cost': 150, 'operational_cost': 0},
+    {'type': 'geothermal', 'fixed_cost': 150, 'operational_cost': 0}
 ]
