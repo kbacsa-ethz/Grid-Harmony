@@ -3,8 +3,10 @@ import pygame
 
 class Camera:
     def __init__(self, width, height):
-        self.zoom_level = 1.0
+        self.zoom_level = 0.75
         self.zoom_step = 0.05
+        self.zoom_min = 0.4
+        self.zoom_max = 2.0
         self.width = width
         self.height = height
         self.offset = pygame.Vector2(0, 0)
@@ -21,6 +23,10 @@ class Camera:
         self.zoom_level += zoom_increment
         if self.zoom_level < self.zoom_step:
             self.zoom_level = self.zoom_step
+        if self.zoom_level > self.zoom_max:
+            self.zoom_level = self.zoom_max
+        elif self.zoom_level < self.zoom_min:
+            self.zoom_level = self.zoom_min
 
         # Calculate the new offset to keep the mouse position as the focal point
         mx, my = mouse_pos

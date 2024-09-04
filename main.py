@@ -1,6 +1,6 @@
 import numpy as np
 import pygame
-from sprites import PlantSprite, CitySprite
+from sprites import BackgroundSprite, PlantSprite, CitySprite
 from geometry import segments_intersect
 from camera import Camera
 from constants import *
@@ -11,6 +11,7 @@ pygame.display.set_caption("SEC Game")
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 running = True
 random.seed(3)
+np.random.seed(3)
 
 clock = pygame.time.Clock()
 
@@ -20,14 +21,33 @@ camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 energy_options = ['oil', 'nuclear', 'solar']
 city_options = ['dense', 'sparse']
 
-# create plants, cities and power grid
-plants = [PlantSprite(random.choice(energy_options), (100 * 2 * i + 50, 100)) for i in range(NUM_PLANTS)]
-cities = [CitySprite(random.choice(city_options), (150 * 3 * i + 50, 300)) for i in range(NUM_CITIES)]
+# Load the background images
+WORLD_WIDTH = 10
+WORLD_HEIGHT = 10
 
+# TODO remove magic numbers
+integers = [EMPTY, FIELD, FOREST, LAKE, PLANT, CITY]
+probabilities = [0.2, 0.2, 0.2, 0.1, 0.25, 0.05]
+world = np.random.choice(integers, size=(WORLD_WIDTH, WORLD_HEIGHT), p=probabilities)
 
-power_grid = np.zeros((NUM_PLANTS, NUM_CITIES)).astype(np.bool_)
-activated_plants = np.zeros(NUM_PLANTS).astype(np.bool_)
-powered_cities = np.zeros(NUM_CITIES).astype(np.bool_)
+# create world
+plants, cities, backgrounds = [], [], []
+num_plants, num_cities = 0, 0
+for i in range(WORLD_WIDTH):
+    for j in range(WORLD_HEIGHT):
+        if FIELD <= world[i, j] <= LAKE:
+            backgrounds += [BackgroundSprite(world[i, j], (i * TILE_WIDTH + TILE_WIDTH // 2, j * TILE_HEIGHT + TILE_HEIGHT // 2))]
+        if world[i, j] == PLANT:
+            plants += [PlantSprite(random.choice(energy_options), (i * TILE_WIDTH + TILE_WIDTH // 2, j * TILE_HEIGHT + TILE_HEIGHT // 2))]
+            num_plants += 1
+        elif world[i, j] == CITY:
+            cities += [CitySprite(random.choice(city_options), (i * TILE_WIDTH + TILE_WIDTH // 2, j * TILE_HEIGHT + TILE_HEIGHT // 2))]
+            num_cities += 1
+
+power_grid = np.zeros((num_plants, num_cities)).astype(np.bool_)
+activated_plants = np.zeros(num_plants).astype(np.bool_)
+powered_cities = np.zeros(num_cities).astype(np.bool_)
+all_background = pygame.sprite.Group(backgrounds)
 all_plants = pygame.sprite.Group(plants)
 all_cities = pygame.sprite.Group(cities)
 
@@ -86,9 +106,9 @@ while running:
                 # Start drawing the line
                 start_pos = event.pos
                 draw_wire = True
-            elif event.button == 4:  # Mouse wheel up
+            elif event.button == SCROLL_UP:  # Mouse wheel up
                 camera.update_zoom(camera.zoom_step, pygame.mouse.get_pos())
-            elif event.button == 5:  # Mouse wheel down
+            elif event.button == SCROLL_DOWN:  # Mouse wheel down
                 camera.update_zoom(-camera.zoom_step, pygame.mouse.get_pos())
         elif event.type == pygame.MOUSEBUTTONUP and event.button == LEFT:
             # Stop drawing the line and finalize it
@@ -144,23 +164,26 @@ while running:
     for i, city in enumerate(cities):
         city.highlighted = powered_cities[i]
 
-    # draw
+    # Draw backgrounds
     screen.fill(BACKGROUND_COLOR)
+    for sprite in all_background:
+        # update camera
+        sprite.relative_image, sprite.relative_rect = camera.apply(sprite)
+        sprite.draw(screen)
 
-
-    for i in range(NUM_PLANTS):
-        for j in range(NUM_CITIES):
+    # draw current connections
+    for i in range(num_plants):
+        for j in range(num_cities):
             if power_grid[i, j]:
                 pygame.draw.line(screen, YELLOW, plants[i].relative_rect.center, cities[j].relative_rect.center, WIRE_WIDTH)
 
-    #all_plants.draw(screen)
+    # Draw plant and city sprites
     for sprite in all_plants:
         # update camera
         sprite.relative_image, sprite.relative_rect = camera.apply(sprite)
         # recompute mask
         sprite.mask = pygame.mask.from_surface(sprite.relative_image)
         sprite.draw(screen)
-    #all_cities.draw(screen)
     for sprite in all_cities:
         # update camera
         sprite.relative_image, sprite.relative_rect = camera.apply(sprite)
@@ -168,9 +191,11 @@ while running:
         sprite.mask = pygame.mask.from_surface(sprite.relative_image)
         sprite.draw(screen)
 
+    # Draw wire
     if draw_wire:
         if start_pos and end_pos:
             pygame.draw.line(screen, YELLOW, start_pos, end_pos, WIRE_WIDTH)
+
     calculate_turn_costs()
     calculate_income()
     # ...
