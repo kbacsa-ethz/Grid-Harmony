@@ -25,7 +25,6 @@ city_options = ['dense', 'sparse']
 WORLD_WIDTH = 10
 WORLD_HEIGHT = 10
 
-# TODO remove magic numbers
 integers = [EMPTY, FIELD, FOREST, LAKE, PLANT, CITY]
 probabilities = [0.2, 0.2, 0.2, 0.1, 0.25, 0.05]
 world = np.random.choice(integers, size=(WORLD_WIDTH, WORLD_HEIGHT), p=probabilities)
@@ -125,7 +124,7 @@ while running:
         start_pos = None
         end_pos = None
 
-    # Update connnections (only while mouse is used)
+    # Update connections (only while mouse is used)
     if start_pos and end_pos:
         # Adding connections
         # iterate all cities for all plants. if the wire connects them and they are not already connected, then connect them
