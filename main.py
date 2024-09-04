@@ -18,7 +18,7 @@ clock = pygame.time.Clock()
 # Create a camera instance
 camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-energy_options = ['oil', 'nuclear', 'solar']
+energy_options = ['oil', 'nuclear', 'solar', 'wind', 'coal', 'geothermal']
 city_options = ['dense', 'sparse']
 
 # create world
