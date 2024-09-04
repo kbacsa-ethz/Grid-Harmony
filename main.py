@@ -21,15 +21,10 @@ camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 energy_options = ['oil', 'nuclear', 'solar']
 city_options = ['dense', 'sparse']
 
-# Load the background images
-WORLD_WIDTH = 10
-WORLD_HEIGHT = 10
-
-integers = [EMPTY, FIELD, FOREST, LAKE, PLANT, CITY]
-probabilities = [0.2, 0.2, 0.2, 0.1, 0.25, 0.05]
-world = np.random.choice(integers, size=(WORLD_WIDTH, WORLD_HEIGHT), p=probabilities)
-
 # create world
+tile_type = [EMPTY, FIELD, FOREST, LAKE, PLANT, CITY]
+tile_probabilities = [0.2, 0.2, 0.2, 0.1, 0.25, 0.05]
+world = np.random.choice(tile_type, size=(WORLD_WIDTH, WORLD_HEIGHT), p=tile_probabilities)
 plants, cities, backgrounds = [], [], []
 num_plants, num_cities = 0, 0
 for i in range(WORLD_WIDTH):
