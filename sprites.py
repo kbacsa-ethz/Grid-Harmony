@@ -2,6 +2,22 @@ import pygame
 from constants import *
 
 
+class BackgroundSprite(pygame.sprite.Sprite):
+    def __init__(self, background_type, position):
+        super().__init__()
+
+        # Load plant image based on type
+        self.background_type = background_type
+        self.image = pygame.image.load(f'assets/background_{background_type}.png').convert_alpha()
+        self.rect = self.image.get_rect(center=position)
+        self.position = pygame.Vector2(position)
+        self.relative_image = self.image
+        self.relative_rect = self.rect
+
+    def draw(self, surface):
+        surface.blit(self.relative_image, self.relative_rect.topleft)
+
+
 class PlantSprite(pygame.sprite.Sprite):
     def __init__(self, plant_type, position):
         super().__init__()
