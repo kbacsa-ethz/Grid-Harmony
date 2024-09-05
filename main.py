@@ -49,6 +49,21 @@ start_pos = None
 end_pos = None
 draw_wire = False
 
+# Start music and load sound effects
+pygame.mixer.init()
+pygame.mixer.music.load("assets/music_loop.mp3")
+pygame.mixer.music.play(-1)  # Loop indefinitely
+pygame.mixer.music.set_volume(0.3)
+
+activate_sound = pygame.mixer.Sound("assets/activate.wav")
+disconnect_sound = pygame.mixer.Sound("assets/disconnect.wav")
+power_sound = pygame.mixer.Sound("assets/connect_city.wav")
+sucess_sound = pygame.mixer.Sound("assets/success.wav")
+activate_sound.set_volume(0.5)
+disconnect_sound.set_volume(0.5)
+power_sound.set_volume(5.0)
+
+
 class Player:
     def __init__(self, initial_money):
         self.money = initial_money
@@ -100,6 +115,7 @@ while running:
                 # Start drawing the line
                 start_pos = event.pos
                 draw_wire = True
+                activate_sound.play()
             elif event.button == SCROLL_UP:  # Mouse wheel up
                 camera.update_zoom(camera.zoom_step, pygame.mouse.get_pos())
             elif event.button == SCROLL_DOWN:  # Mouse wheel down
@@ -140,6 +156,7 @@ while running:
                 if power_grid[i, j]:
                     if segments_intersect(plant.relative_rect.center, city.relative_rect.center, start_pos, end_pos):
                         power_grid[i, j] = False
+                        disconnect_sound.play()
 
     # Remove by deactivated plant
     for i, plant in enumerate(plants):
@@ -148,7 +165,14 @@ while running:
 
     # City is powered if two or more plants are connected (TODO: will need to be changed when other mechanics are added)
     for i, city in enumerate(cities):
+        previous_state = powered_cities[i]
         powered_cities[i] = np.sum(power_grid[:, i].astype(int)) >= 2
+        if powered_cities[i] and not previous_state:
+            power_sound.play()
+
+    # End condition
+    if all(powered_cities):
+        running = False
 
     # DRAWING
 
@@ -201,3 +225,10 @@ while running:
 
     # update the display
     pygame.display.flip()
+
+
+# End game celebration
+pygame.mixer.music.stop()
+sucess_sound.play()
+pygame.time.delay(5000)
+pygame.quit()
