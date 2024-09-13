@@ -146,7 +146,7 @@ while running:
                 if not draw_wire:
                     distance = ((end_pos[0] - start_pos[0]) ** 2 +
                                 (end_pos[1] - start_pos[1]) ** 2) ** 0.5
-                    if distance >= drag_threshold:
+                    if distance >= DRAG_THRESHOLD:
                         draw_wire = True
 
     # GAME LOGIC
