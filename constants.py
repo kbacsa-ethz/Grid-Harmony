@@ -13,6 +13,8 @@ WIRE_WIDTH = 5
 LEFT = 1
 SCROLL_UP = 4
 SCROLL_DOWN = 5
+CLICK_THRESHOLD = 0.2  # 200 ms for a short click
+DRAG_THRESHOLD = 10  # drag must be at least 10 pixels
 
 # tile constants
 EMPTY = 0
