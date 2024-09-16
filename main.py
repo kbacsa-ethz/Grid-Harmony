@@ -184,7 +184,7 @@ while running:
     screen.blit(money_text, (10, 10))
     
     pollution_level = sum(plant.pollution_factor for plant in plants if plant.highlighted)
-    pollution_bar_color = (255,0,0)
+    pollution_bar_color = "RED"
     # Display pollution level
     pollution_text = font.render(f"Pollution: {pollution_level}/{max_pollution_level}", True, pollution_bar_color)
     screen.blit(pollution_text, (10, 40))
