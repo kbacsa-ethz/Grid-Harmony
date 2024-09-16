@@ -21,6 +21,9 @@ camera = Camera(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 energy_options = ['oil', 'nuclear', 'solar', 'wind', 'coal', 'geothermal']
 city_options = ['dense', 'sparse']
+pollution_level = 0
+max_pollution_level = 100  # Adjust as needed
+
 
 # create world
 tile_type = [EMPTY, FIELD, FOREST, LAKE, PLANT, CITY]
@@ -74,18 +77,81 @@ class Player:
 
 
 # Player
-player = Player(1000)  # Initial money
+def get_name_input(screen, font):
+    """Prompts the user for their name using a text input box.
+
+    Args:
+        screen: The Pygame screen to draw on.
+        font: The font to use for the text.
+
+    Returns:
+        The entered name as a string.
+    """
+
+    input_box = pygame.Rect(100, 100, 140, 32)
+    color_inactive = pygame.Color('lightskyblue')
+    color_active = pygame.Color('dodgerblue')
+    color = color_inactive
+    text = ''
+    done = False
+
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if  input_box.collidepoint(event.pos):
+                    color = color_active
+                else:
+                    color = color_inactive
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:  
+
+                    done = True
+                elif event.key == pygame.K_BACKSPACE:
+                    text = text[:-1]
+                else:
+                    text += event.unicode
+
+        screen.fill((30, 30, 30))  
+
+        pygame.draw.rect(screen, color, input_box, 2)
+        text_surface = font.render(text, True, color)
+        screen.blit(text_surface, (input_box.x+5, input_box.y+5))
+        pygame.display.flip()
+
+    return text
+player = Player(random.randint(600000, 900000))  # Initial money
+#name = get_name_input(screen, font)
+#print(f"Welcome, {name}!")
+
+score = 0
+start_time = time.time()
+
+leaderboard_file = "leaderboard.txt"
 
 
-# ... rest of the code ...
+def load_leaderboard():
+    leaderboard = []
+    try:
+        with open(leaderboard_file, 'r') as f:
+            for line in f:
+                name, score = line.strip().split(',')
+                leaderboard.append((name, int(score)))
+    except FileNotFoundError:
+        pass
+    return leaderboard
+
+def save_leaderboard(leaderboard):
+    with open(leaderboard_file, 'w') as f:
+        for name, score in leaderboard:
+            f.write(f"{name},{score}\n") 
 
 def build_plant(plant_type):
     # Find the plant type in energy_sources
     plant_data = next(p for p in energy_sources if p['type'] == plant_type)
     if player.money >= plant_data['fixed_cost']:
         player.money -= plant_data['fixed_cost']
-        # Create a new plant instance
-        # ...
     else:
         print("Insufficient funds")
 
@@ -101,10 +167,13 @@ def calculate_income():
     income = sum(powered_cities) * 10  # Simple income model
     player.money += income
 
+font = pygame.font.Font(None, 36)
+name="john doe"
 
 while running:
 
     clock.tick(FPS)
+    score = time.time() - start_time
 
     # EVENT HANDLING
 
@@ -240,9 +309,49 @@ while running:
     font = pygame.font.Font(None, 36)
     money_text = font.render(f"Money: {player.money}", True, (0, 0, 0))
     screen.blit(money_text, (10, 10))
+    pollution_level = sum(plant.pollution_factor for plant in plants if plant.highlighted)
+    pollution_bar_color = "RED"
+    # Display pollution level
+    pollution_text = font.render(f"Pollution: {pollution_level}/{max_pollution_level}", True, pollution_bar_color)
+    screen.blit(pollution_text, (10, 40))
+
+    # Pollution bar
+    pollution_bar_width = 200
+    pollution_bar_height = 20
+    
+    pollution_bar_rect = pygame.Rect(10, 60, pollution_bar_width, pollution_bar_height)
+    pygame.draw.rect(screen, (34,139,34), pollution_bar_rect)
+    pollution_fill_width = int(pollution_bar_width * pollution_level / max_pollution_level)
+    pygame.draw.rect(screen, pollution_bar_color, (10, 60, pollution_fill_width, pollution_bar_height))
 
     # update the display
     pygame.display.flip()
+    
+    # End game
+    if all(powered_cities):
+        print("Congratulations! You powered all cities!")
+        score = time.time() - start_time
+    elif player.money <= 0:
+        score = time.time() - start_time
+        print("Game over! You ran out of money.")
+    elif pollution_level >= max_pollution_level:
+        score = time.time() - start_time
+        print("Game over! Pollution reached the maximum level.")
+    
+    # Check for high score
+    # leaderboard = load_leaderboard()
+    # if (name, score) not in leaderboard and len(leaderboard) < 10 or score > leaderboard[-1][1]:
+    #     name = input("Enter your name: ")
+    #     leaderboard.append((name, score))
+    #     leaderboard.sort(key=lambda x: x[1], reverse=True)
+    #     leaderboard = leaderboard[:10]
+    #     save_leaderboard(leaderboard)
+    
+    # Print final score and leaderboard
+    # print(f"Your final score: {score}")
+    # print("Leaderboard:")
+    # for name, score in leaderboard:
+    #     print(f"{name}: {score}")
 
 # End game celebration
 pygame.mixer.music.stop()

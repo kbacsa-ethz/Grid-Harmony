@@ -32,6 +32,7 @@ class PlantSprite(pygame.sprite.Sprite):
         # Cost and operation data
         self.cost = self.get_cost_from_type(plant_type)
         self.operational_cost = self.get_operational_cost_from_type(plant_type)
+        self.pollution_factor = self.get_pollution_factor_from_type(plant_type)
 
         self.relative_image = self.image
         self.relative_rect = self.rect
@@ -58,6 +59,11 @@ class PlantSprite(pygame.sprite.Sprite):
         # Assuming operational cost data is stored in a dictionary in constants.py
         cost_data = next(data for data in PLANT_DATA if data['type'] == plant_type)
         return cost_data['operational_cost']
+    
+    def get_pollution_factor_from_type(self, plant_type):
+        # Assuming pollution factor data is stored in a dictionary in constants.py
+        cost_data = next(data for data in PLANT_DATA if data['type'] == plant_type)
+        return cost_data['pollution_factor']
 
 
 class CitySprite(pygame.sprite.Sprite):
