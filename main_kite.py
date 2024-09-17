@@ -157,116 +157,71 @@ class CompletePopup(Popup):
         self.size_hint = (0.5, 0.5)
         self.auto_dismiss = True
         
-class Background(BoxLayout):
-    background_type = StringProperty("")
-    image_source = StringProperty("")
-
-    def __init__(self, background_type, **kwargs):
-        super(Background, self).__init__(**kwargs)
-        self.background_type = background_type
-        self.update_image()
-
-    def update_image(self):
-        self.image_source = f"assets/background_{self.background_type}.png"
-
-
-class Plant(BoxLayout):
-    # ... (other properties)
-    highlighted = BooleanProperty(False)
-
-    def __init__(self, plant_type, **kwargs):
-        super(Plant, self).__init__(**kwargs)
-        # ... (other initialization)
-
-    def on_highlighted(self, instance, value):
-        if value:
-            # Highlight logic: Add a green border
-            self.border_color = (0, 1, 0, 1)  # Green color
-            self.border_width = 2
-        else:
-            # Unhighlight logic: Remove the border
-            self.border_color = (0, 0, 0, 0)  # Transparent color
-            self.border_width = 0
-
-    def update_image(self):
-        # ... (update image source)
-        self.image_source = f"assets/background_{self.background_type}.png"
-        self.canvas.before.clear()  # Clear previous canvas instructions
-        Rectangle(
-            pos=self.pos,
-            size=self.size,
-            source=self.image_source,
-            border_color=self.border_color,
-            border_width=self.border_width
-        )
-
-class City(BoxLayout):
-    # ... (other properties)
-    highlighted = BooleanProperty(False)
-
-    def __init__(self, **kwargs):
-        super(City, self).__init__(**kwargs)
-        self.background_type="dense_city"
-
-    def on_highlighted(self, instance, value):
-        if value:
-            # Highlight logic: Add a blue border
-            self.border_color = (0, 0, 1, 1)  # Blue color
-            self.border_width = 2
-        else:
-            # Unhighlight logic: Remove the border
-            self.border_color = (0, 0, 0, 0)  # Transparent color
-            self.border_width = 0
-
-    def update_image(self):
-        # ... (update image source)
-        self.image_source = f"assets/background_{self.background_type}.png"
-        self.canvas.before.clear()  # Clear previous canvas instructions
-        Rectangle(
-            pos=self.pos,
-            size=self.size,
-            source=self.image_source,
-            border_color=self.border_color,
-            border_width=self.border_width
-        )
 
 class PlayScreen(Screen):
     grid_size = (20, 20)  # Adjust grid size as needed
-
-    cities = []
-    plants = []
 
     def __init__(self, **kwargs):
         super(PlayScreen, self).__init__(**kwargs)
         self.music = None
         self.button_click_sound = SoundLoader.load('button_click.mp3')
-
-        layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        back_button = Button(text='Back', size_hint=(0.15, 0.2), pos_hint={'x': 0, 'top': 1})
-        back_button.bind(on_press=self.on_back)
         image = Image(source='menu_image.jpg', size_hint=(1, 1), pos_hint={'center_x': 0.5, 'center_y': 0.5}, allow_stretch=True, keep_ratio=False)
         self.add_widget(image)
+        
+        # Random starting amount for the player
+        self.player_budget = random.randint(1000, 5000)  # Example range for starting budget
+        self.total_pollution = 0
+        
+        # Layout for buttons and information display
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        
+        #back_button = Button(text='Back', size_hint=(0.15, 0.2), pos_hint={'x': 0, 'top': 1})
+        #back_button.bind(on_press=self.on_back)
+        #layout.add_widget(back_button)
+
+        # Create labels for budget and pollution display
+        self.budget_label = Label(text=f"Budget: ${self.player_budget}", size_hint=(1, 0.1))
+        self.pollution_label = Label(text=f"Total Pollution: {self.total_pollution} units", size_hint=(1, 0.1))
+        layout.add_widget(self.budget_label)
+        layout.add_widget(self.pollution_label)
+        
         self.add_widget(layout)
+        
+        # Add city and plants
         self.create_game_elements()
+
     def create_game_elements(self):
-        # Add city to the screen
+        # Randomly select plants for the player
+        selected_plants = random.sample(PLANT_DATA, k=6)  # Randomly choose 3 plants for the player
         city_image = self.add_random_element('assets/dense_city.png')
-        self.cities.append(city_image)
-        
-        # Add plants (e.g., solar, coal) randomly to the screen
-        plant_types = ['assets/solar_plant.png', 'assets/coal_plant.png']  # Add more plant types if needed
-        for plant_type in plant_types:
-            plant_image = self.add_random_element(plant_type)
-            self.plants.append(plant_image)
-        
+        #self.cities.append(city_image)
+        city_image = self.add_random_element('assets/sparse_city.png')
+        #self.cities.append(city_image)
+        for plant in selected_plants:
+            plant_image = self.add_random_element(f'assets/{plant["type"]}_plant.png')
+            self.update_cost_and_pollution(plant)
+
     def add_random_element(self, image_source):
         # Create a random position for the element
         random_x = random.uniform(0, 1)  # Random x position (normalized between 0 and 1)
         random_y = random.uniform(0, 1)  # Random y position (normalized between 0 and 1)
-    
+
         element = Image(source=image_source, size_hint=(0.1, 0.1), pos_hint={'center_x': random_x, 'center_y': random_y})
         self.add_widget(element)
         return element
+
+    def update_cost_and_pollution(self, plant):
+        # Deduct fixed and operational costs from the player's budget
+        self.player_budget -= plant['fixed_cost']
+        self.player_budget -= plant['operational_cost']
+        
+        # Add to total pollution
+        self.total_pollution += plant['pollution_factor']
+        
+        # Update labels
+        self.budget_label.text = f"Budget: ${self.player_budget}"
+        self.pollution_label.text = f"Total Pollution: {self.total_pollution} units"
+
 
     # def create_game_elements(self):
     #     self.grid = [[None for _ in range(self.grid_size[1])] for _ in range(self.grid_size[0])]
