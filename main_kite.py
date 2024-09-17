@@ -20,6 +20,7 @@ from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 from kivy.graphics import Rectangle, Color  # potential use for highlighting
 from kivy.uix.progressbar import ProgressBar
 from kivy.graphics import Color, Line
+from kivy.animation import Animation
 import cv2
 import numpy as np
 from math import sqrt
@@ -157,7 +158,33 @@ class CompletePopup(Popup):
         self.content = Label(text='Level Complete!')
         self.size_hint = (0.5, 0.5)
         self.auto_dismiss = True
-        
+
+class CustomProgressBar(ProgressBar):
+    def __init__(self, **kwargs):
+        super(CustomProgressBar, self).__init__(**kwargs)
+        with self.canvas.before:
+            self.bg = Rectangle(source='assets/gauge.png', size=self.size, pos=self.pos)
+        self.bind(pos=self.update_graphics, size=self.update_graphics)
+
+    def update_graphics(self, *args):
+        self.bg.size = self.size
+        self.bg.pos = self.pos
+
+class SmokeEffect(Widget):
+    def __init__(self, **kwargs):
+        super(SmokeEffect, self).__init__(**kwargs)
+        self.smoke_opacity = 0
+
+        with self.canvas:
+            self.smoke_image = Image(source='assets/smoke.png', size_hint=(1, 1), opacity=self.smoke_opacity)
+
+    def update_smoke_intensity(self, intensity):
+        self.smoke_opacity = intensity
+
+    def animate(self):
+        # Animate smoke opacity and movement if desired
+        anim = Animation(opacity=self.smoke_opacity, duration=1)
+        anim.start(self.smoke_image)       
 
 class PlayScreen(Screen):
 
@@ -171,7 +198,7 @@ class PlayScreen(Screen):
         # Random starting amount for the player
         self.player_budget = random.randint(1000, 5000)
         self.total_pollution = 0
-        self.max_pollution = 1000  # Maximum pollution (used for the pollution gauge)
+        self.max_pollution = 100  # Maximum pollution (used for the pollution gauge)
         
         # Layout for buttons and information display
         layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
@@ -183,7 +210,7 @@ class PlayScreen(Screen):
         layout.add_widget(self.pollution_label)
         
         # Pollution Gauge
-        self.pollution_gauge = ProgressBar(max=self.max_pollution, value=self.total_pollution, size_hint=(1, 0.1))
+        self.pollution_gauge = CustomProgressBar(max=self.max_pollution, value=self.total_pollution, size_hint=(1, 0.1))
         layout.add_widget(self.pollution_gauge)
         
         self.add_widget(layout)
@@ -292,7 +319,16 @@ class PlayScreen(Screen):
             widget_y - widget_height / 2 <= touch.y <= widget_y + widget_height / 2):
             return True
         return False
+    
+    def update_smoke_effect(self):
+        # Adjust the smoke intensity based on the pollution
+        self.smoke.update_smoke_intensity(self.total_pollution / self.max_pollution)
 
+    def update_smoke(self, dt):
+        # Update the smoke animation over time
+        self.smoke.animate()
+        
+        
     def on_enter(self, *args):
         self.play_music('assets/music_loop.mp3')
 
