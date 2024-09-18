@@ -46,7 +46,7 @@ class PlantSprite(pygame.sprite.Sprite):
     def draw_contour(self, surface):
         mask_outline = self.mask.outline()
         outline_color = YELLOW
-        outline_width = 1
+        outline_width = 2
         for point in mask_outline:
             pygame.draw.circle(surface, outline_color, (self.relative_rect.x + point[0], self.relative_rect.y + point[1]), outline_width)
 
@@ -85,6 +85,6 @@ class CitySprite(pygame.sprite.Sprite):
     def draw_contour(self, surface):
         mask_outline = self.mask.outline()
         outline_color = GREEN
-        outline_width = 1
+        outline_width = 2
         for point in mask_outline:
             pygame.draw.circle(surface, outline_color, (self.relative_rect.x + point[0], self.relative_rect.y + point[1]), outline_width)
