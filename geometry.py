@@ -34,8 +34,7 @@ def segments_intersect(p1, q1, p2, q2):
     if o1 != o2 and o3 != o4:
         return True
 
-    """
-    # Ignore special cases, else the line would intersect with itself between two frames 
+    # Ignore special cases, else the line would intersect with itself between two frames
     
     # Special cases
     # p1, q1 and p2 are collinear and p2 lies on segment p1q1
@@ -53,7 +52,6 @@ def segments_intersect(p1, q1, p2, q2):
     # p2, q2 and q1 are collinear and q1 lies on segment p2q2
     if o4 == 0 and on_segment(p2, q1, q2):
         return True
-    """
 
     # If none of the cases, return False
     return False
